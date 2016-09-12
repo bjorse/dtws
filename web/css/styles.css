@@ -1,0 +1,32 @@
+textarea {
+  resize: none;
+}
+
+.bottom-buffer {
+  margin-bottom: 5px;
+}
+
+.top-buffer {
+  margin-top: 5px;
+}
+
+.left-buffer {
+  margin-left: 5px;
+}
+
+.medium-label {
+  font-size: 90%;
+}
+
+.big-label {
+  font-size: 110%;
+}
+
+.very-big-label {
+  font-size: 120%;
+}
+
+.stuff-box {
+  overflow-y: scroll;
+  height: 620px;
+}
