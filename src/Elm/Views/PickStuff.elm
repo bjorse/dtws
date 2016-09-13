@@ -24,7 +24,7 @@ getAreaViews : Model -> Html Msg
 getAreaViews model =
   let
     areasToPick = List.filter (\a -> a.level /= Low) model.declareAreas
-    anyAreas = not <| List.isEmpty areasToPick
+    anyAreas = (not << List.isEmpty) areasToPick
   in
     if anyAreas then getAllAreasView areasToPick model else getNoAreasWarning
 
@@ -48,7 +48,7 @@ getAreaView : List PickItem -> Bool -> DeclareArea -> Html Msg
 getAreaView allItems locked area =
   let
     dsId = area.id
-    items = List.filter (\i -> List.member dsId i.availableDeclareAreas) allItems
+    items = getPickedItems dsId allItems
   in
     div [ class "list-group-item" ]
       [ div [ class "form-inline" ]
@@ -111,6 +111,6 @@ getItemCheckbox dsId item =
     selected = List.member dsId item.pickedDeclareAreas
   in
     div [ class "checkbox" ] 
-      [ label [] [ input [ type' "checkbox", checked selected, onCheck <| UpdatePickStuff << SetPickedItemState dsId item.id ] []
-      , text item.title ] 
+      [ input [ type' "checkbox", checked selected, onCheck <| UpdatePickStuff << SetPickedItemState dsId item.id ] []
+      , label [] [ text item.title ] 
       ]

@@ -1,7 +1,7 @@
 module SideMenu exposing (sideMenu)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, href)
+import Html.Attributes exposing (class, classList, href)
 import Html.Events exposing (onClick)
 
 import Types exposing (..)
@@ -15,7 +15,8 @@ sideMenu model =
 
 getMenuItem : Model -> MainPage -> Html Msg
 getMenuItem model page =
-  li [ class <| getMenuItemClass model page ] [ a [ href "#", onClick <| ChangePage <| Main page ] [ text <| getMenuItemTitle page ] ]
+  li [ classList [ ("active", (model.page == Main page)) ] ] 
+    [ a [ href "#", onClick <| ChangePage <| Main page ] [ text <| getMenuItemTitle page ] ]
 
 getMenuItemTitle : MainPage -> String
 getMenuItemTitle page =
@@ -27,7 +28,3 @@ getMenuItemTitle page =
     PickStuff -> "Pick stuff"
 
     WriteStuff -> "Write stuff"
-
-getMenuItemClass : Model -> MainPage -> String
-getMenuItemClass model page =
-  if model.page == Main page then "active" else ""
