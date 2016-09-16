@@ -52,9 +52,13 @@ getSearchToolbar model =
         ] 
       , Keyed.ul [ class "dropdown-menu" ] <| getPickItemsEntries model.selectedNoteSearchItems model.pickedItems
       ]
-    , button [ type' "button", 
-               class "btn btn-primary left-buffer", 
-               onClick <| UpdateWriteStuff <| SearchForNotes model.selectedNoteSearchItems ]
+    , button [ type' "button"
+             , class "btn btn-default left-buffer"
+             , onClick <| UpdateWriteStuff ClearSelectedItemsInNoteSearch ]
+      [ text "Clear items" ]
+    , button [ type' "button"
+             , class "btn btn-primary left-buffer"
+             , onClick <| UpdateWriteStuff <| SearchForNotes model.selectedNoteSearchItems ]
       [ span [ class "glyphicon glyphicon-search" ] []
       , text " Search for notes" 
       ] 
@@ -166,17 +170,19 @@ getSearchResult hasSearchedForNotes searchResult pickedItems =
 getSearchResultItems hasSearchedForNotes searchResult pickedItems =
   div [ class "row" ] 
     [ hr [] []
-    , div [ class "panel panel-default" ] 
-      [ if hasSearchedForNotes then getActualSearchResult searchResult pickedItems else getEmptySearchResult ]
+    , div [] 
+      (if hasSearchedForNotes then getActualSearchResult searchResult pickedItems else getEmptySearchResult)
     ]
 
 getEmptySearchResult =
-  text "No notes found!"
+  [ div [] [ text "" ] ]
 
-getActualSearchResult : List Note -> List PickItem -> Html a
+getActualSearchResult : List Note -> List PickItem -> List (Html a)
 getActualSearchResult searchResult pickedItems =
-  div [ class "list-group" ] 
+  [ div [ class "list-group" ] 
     <| List.map (\sr -> a [ href "#", class "list-group-item" ] <| getSearchResultItem sr pickedItems) searchResult
+  , p [] [ text ("Results found: " ++ (toString <| List.length searchResult)) ]
+  ]
 
 getSearchResultItem searchResultItem pickedItems =
   let
