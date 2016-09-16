@@ -55,7 +55,8 @@ updateWriteStuff msg model =
       { model | selectedNoteSearchItems = [] } ! []
     
     SearchForNotes items ->
-      { model | noteSearchResult = if List.isEmpty items 
+      { model | hasSearchedForNotes = True
+              , noteSearchResult = if List.isEmpty items 
                                    then model.notes
                                    else List.filter (\n -> List.member n.item items) model.notes } ! []
 

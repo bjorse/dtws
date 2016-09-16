@@ -15,6 +15,7 @@ init = (
   , pickedItemsLocked = False
   , notes = []
   , editingNote = Nothing
+  , hasSearchedForNotes = False
   , selectedNoteSearchItems = []
   , noteSearchResult = []
   }

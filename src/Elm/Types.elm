@@ -87,6 +87,7 @@ type alias Model =
   , pickedItemsLocked: Bool
   , notes: List Note
   , editingNote: Maybe NoteEdit
+  , hasSearchedForNotes: Bool
   , selectedNoteSearchItems: List Int
   , noteSearchResult: List Note
   }

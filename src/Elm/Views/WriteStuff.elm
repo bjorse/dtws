@@ -2,10 +2,11 @@ module Views.WriteStuff exposing (writeStuffView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick, onInput, onCheck)
 import Html.Keyed as Keyed
 import List.Extra exposing (find)
 import String
+import Date.Format exposing (format)
 
 import Types exposing (..)
 
@@ -16,6 +17,7 @@ writeStuffView model =
     , if not model.pickedItemsLocked then text "" else getEditNoteView model
     , hr [] []
     , getSearchToolbar model
+    , getSearchResult model.hasSearchedForNotes model.noteSearchResult model.pickedItems 
     ]
 
 getUpperButtonToolbarView : Model -> Html Msg
@@ -43,17 +45,25 @@ getUpperButtonToolbar model =
 
 getSearchToolbar model =
   div [ class "row" ]
-    [ button [ type' "button", class "btn btn-default dropdown-toggle", attribute "data-toggle" "dropdown"]
-      [ text "Select items" 
-      , span [ class "caret" ] []
-      ] 
+    [ div [ class "btn-group" ]
+      [ button [ type' "button", class "btn btn-default dropdown-toggle", attribute "data-toggle" "dropdown"]
+        [ text <| getItemsSelectText model.selectedNoteSearchItems model.pickedItems
+        , span [ class "caret" ] []
+        ] 
+      , Keyed.ul [ class "dropdown-menu" ] <| getPickItemsEntries model.selectedNoteSearchItems model.pickedItems
+      ]
     , button [ type' "button", 
                class "btn btn-primary left-buffer", 
                onClick <| UpdateWriteStuff <| SearchForNotes model.selectedNoteSearchItems ]
       [ span [ class "glyphicon glyphicon-search" ] []
       , text " Search for notes" 
       ] 
-    ]
+   ]
+
+getItemsSelectText selectedIds items =
+  if List.isEmpty selectedIds
+    then "All items"
+    else (List.filter (\i -> List.member i.id selectedIds) items) |> List.map .title |> String.join ", "
 
 getEditNoteView : Model -> Html Msg
 getEditNoteView model =
@@ -132,3 +142,51 @@ getItemsToSelectText items itemId =
         Nothing -> "Unknown item selected"
     
     Nothing -> "Select item"
+
+getPickItemsEntries selectedIds items =
+  List.map (getPickItemEntry selectedIds) items
+
+getPickItemEntry selectedIds item =
+  ((toString item.id), li [] [ a [ href "#" ] [ getItemCheckbox selectedIds item ]]) 
+
+getItemCheckbox selectedIds item =
+  let
+    selected = List.member item.id selectedIds
+  in
+    div [ class "checkbox" ] 
+      [ label [] [ input [ type' "checkbox", checked selected, onCheck <| UpdateWriteStuff << (SetItemInNoteSearch item.id) ] []
+      , text item.title ] 
+      ]
+
+getSearchResult hasSearchedForNotes searchResult pickedItems =
+  if not hasSearchedForNotes
+    then text ""
+    else getSearchResultItems hasSearchedForNotes searchResult pickedItems
+
+getSearchResultItems hasSearchedForNotes searchResult pickedItems =
+  div [ class "row" ] 
+    [ hr [] []
+    , div [ class "panel panel-default" ] 
+      [ if hasSearchedForNotes then getActualSearchResult searchResult pickedItems else getEmptySearchResult ]
+    ]
+
+getEmptySearchResult =
+  text "No notes found!"
+
+getActualSearchResult : List Note -> List PickItem -> Html a
+getActualSearchResult searchResult pickedItems =
+  div [ class "list-group" ] 
+    <| List.map (\sr -> a [ href "#", class "list-group-item" ] <| getSearchResultItem sr pickedItems) searchResult
+
+getSearchResultItem searchResultItem pickedItems =
+  let
+    itemText = case find (\i -> i.id == searchResultItem.item) pickedItems of
+      Just i -> i.title
+
+      Nothing -> "Unknown item"
+  in
+    [ h4 [ class "list-group-item-heading" ] 
+      [ text itemText
+      , small [ class "left-buffer" ] [ text (format "%Y-%m-%d %H:%M" searchResultItem.date) ] ]
+    , p [ class "list-group-item-text" ] [ text searchResultItem.text ]
+    ]
