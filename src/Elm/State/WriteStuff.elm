@@ -62,5 +62,5 @@ updateWriteStuff msg model =
 getNextNoteId : List Note -> Int
 getNextNoteId notes =
   case List.maximum (List.map .id notes) of
-    Just id -> id
+    Just id -> id + 1
     Nothing -> 1

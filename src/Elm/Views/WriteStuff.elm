@@ -15,6 +15,7 @@ writeStuffView model =
     [ getUpperButtonToolbarView model
     , if not model.pickedItemsLocked then text "" else getEditNoteView model
     , hr [] []
+    , getSearchToolbar model
     ]
 
 getUpperButtonToolbarView : Model -> Html Msg
@@ -39,6 +40,20 @@ getUpperButtonToolbar model =
         ]
         [ text "Create a new note" ] 
       ]
+
+getSearchToolbar model =
+  div [ class "row" ]
+    [ button [ type' "button", class "btn btn-default dropdown-toggle", attribute "data-toggle" "dropdown"]
+      [ text "Select items" 
+      , span [ class "caret" ] []
+      ] 
+    , button [ type' "button", 
+               class "btn btn-primary left-buffer", 
+               onClick <| UpdateWriteStuff <| SearchForNotes model.selectedNoteSearchItems ]
+      [ span [ class "glyphicon glyphicon-search" ] []
+      , text " Search for notes" 
+      ] 
+    ]
 
 getEditNoteView : Model -> Html Msg
 getEditNoteView model =

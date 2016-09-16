@@ -41,14 +41,15 @@ getAllAreasView areas model =
   div [] 
     [ if model.pickedItemsLocked then (div [ class "row" ] [ getLockedInformation ]) else (text "")
     , div [ class "row" ] [ div [ class "list-group"] <| List.map (getAreaView model.pickedItems model.pickedItemsLocked) areas ]
-    , div [ class "row" ] [ getLockToggleButton model.pickedItemsLocked (\s -> UpdatePickStuff (SetPickedItemsLocked s)) ]
+    , div [ class "row" ] [ getLockToggleButton model.pickedItemsLocked (UpdatePickStuff << SetPickedItemsLocked) ]
     ]
 
 getAreaView : List PickItem -> Bool -> DeclareArea -> Html Msg 
 getAreaView allItems locked area =
   let
-    dsId = area.id
-    items = getPickedItems dsId allItems
+    daId = area.id
+    areaItems = List.filter (\i -> List.member daId i.availableDeclareAreas) allItems
+    pickedItems = getPickedItems daId allItems
   in
     div [ class "list-group-item" ]
       [ div [ class "form-inline" ]
@@ -58,7 +59,8 @@ getAreaView allItems locked area =
       , div [ class "clearfix" ] []
       , div [ class "row" ]
         [ div [ class "col-md-8" ] [ text area.description ]
-        , div [ class "col-md-4" ] <| if locked then [ getReadOnlyPickItemsView dsId items area.level ] else getPickItemsView dsId items
+        , div [ class "col-md-4" ] <| if locked then [ getReadOnlyPickItemsView daId pickedItems area.level ] 
+                                                else getPickItemsView daId areaItems
         ]
       ]
 
@@ -71,9 +73,9 @@ getReadonlyItemInfo level item =
   li [ class "bottom-buffer" ] [ span [ class <| "label medium-label " ++ getAreaLevelColor level ] [ text item.title ]]
 
 getPickItemsView : Int -> List PickItem -> List (Html Msg)
-getPickItemsView dsId items =
+getPickItemsView daId items =
   let
-    pickedItems = getPickedItems dsId items
+    pickedItems = getPickedItems daId items
   in
     [ div [ class "row" ]
       [ div [ class "btn-group" ]
@@ -81,17 +83,16 @@ getPickItemsView dsId items =
           [ text "Select items " 
           , span [ class "caret" ] []
           ]
-        , ul [ class "dropdown-menu" ] 
-            <| List.map (\checkboxItem -> li [] [ a [ href "#" ] [ checkboxItem ]]) <| getPickItems dsId items
+        , Keyed.ul [ class "dropdown-menu" ] <| getPickItemsEntries daId items
         ]
       ]
     , div [ class "row" ]
-      [ Keyed.ul [ class "list-unstyled" ] <| getPickedItemsEntries dsId pickedItems ]
+      [ Keyed.ul [ class "list-unstyled" ] <| getPickedItemsEntries daId pickedItems ]
     ]
 
 getPickedItems : Int -> List PickItem -> List PickItem
-getPickedItems dsId items =
-  List.filter (\i -> List.member dsId i.pickedDeclareAreas) items
+getPickedItems daId items =
+  List.filter (\i -> List.member daId i.pickedDeclareAreas) items
 
 getPickedItemsEntries : Int -> List PickItem -> List (String, Html Msg)
 getPickedItemsEntries daId items =
@@ -99,18 +100,26 @@ getPickedItemsEntries daId items =
 
 getPickedItemEntry : Int -> PickItem -> (String, Html Msg)
 getPickedItemEntry daId item =
-  ( (toString daId) ++ "-" ++ (toString item.id), li [] [ getItemCheckbox daId item ] )
+  ((getItemId daId item), li [] [ getItemCheckbox daId item ])
 
-getPickItems : Int -> List PickItem -> List (Html Msg)
-getPickItems dsId items =
-  List.map (getItemCheckbox dsId) items
+getPickItemsEntries : Int -> List PickItem -> List (String, Html Msg)
+getPickItemsEntries daId items =
+  List.map (getPickItemEntry daId) items
+
+getPickItemEntry : Int -> PickItem -> (String, Html Msg)
+getPickItemEntry daId item =
+  ((getItemId daId item), li [] [ a [ href "#" ] [ getItemCheckbox daId item ]]) 
 
 getItemCheckbox : Int -> PickItem -> Html Msg
-getItemCheckbox dsId item =
+getItemCheckbox daId item =
   let
-    selected = List.member dsId item.pickedDeclareAreas
+    selected = List.member daId item.pickedDeclareAreas
   in
     div [ class "checkbox" ] 
-      [ input [ type' "checkbox", checked selected, onCheck <| UpdatePickStuff << SetPickedItemState dsId item.id ] []
-      , label [] [ text item.title ] 
+      [ label [] [ input [ type' "checkbox", checked selected, onCheck <| UpdatePickStuff << SetPickedItemState daId item.id ] []
+      , text item.title ] 
       ]
+
+getItemId : Int -> PickItem -> String
+getItemId daId item =
+  (toString daId) ++ "-" ++ (toString item.id)
