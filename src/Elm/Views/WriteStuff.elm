@@ -15,7 +15,6 @@ writeStuffView model =
   div []
     [ getUpperButtonToolbarView model
     , if not model.pickedItemsLocked then text "" else getEditNoteView model
-    , hr [] []
     , getSearchToolbar model
     , getSearchResult model.hasSearchedForNotes model.noteSearchResult model.pickedItems 
     ]
@@ -43,8 +42,9 @@ getUpperButtonToolbar model =
         [ text "Create a new note" ] 
       ]
 
+getSearchToolbar : Model -> Html Msg
 getSearchToolbar model =
-  div [ class "row" ]
+  div [ class "row top-buffer" ]
     [ div [ class "btn-group" ]
       [ button [ type' "button", class "btn btn-default dropdown-toggle", attribute "data-toggle" "dropdown"]
         [ text <| getItemsSelectText model.selectedNoteSearchItems model.pickedItems
@@ -64,6 +64,7 @@ getSearchToolbar model =
       ] 
    ]
 
+getItemsSelectText : List Int -> List PickItem -> String
 getItemsSelectText selectedIds items =
   if List.isEmpty selectedIds
     then "All items"
@@ -147,12 +148,15 @@ getItemsToSelectText items itemId =
     
     Nothing -> "Select item"
 
+getPickItemsEntries : List Int -> List PickItem -> List (String, Html Msg)
 getPickItemsEntries selectedIds items =
   List.map (getPickItemEntry selectedIds) items
 
+getPickItemEntry : List Int -> PickItem -> (String, Html Msg)
 getPickItemEntry selectedIds item =
   ((toString item.id), li [] [ a [ href "#" ] [ getItemCheckbox selectedIds item ]]) 
 
+getItemCheckbox : List Int -> PickItem -> Html Msg
 getItemCheckbox selectedIds item =
   let
     selected = List.member item.id selectedIds
@@ -162,11 +166,13 @@ getItemCheckbox selectedIds item =
       , text item.title ] 
       ]
 
+getSearchResult : Bool -> List Note -> List PickItem -> Html a
 getSearchResult hasSearchedForNotes searchResult pickedItems =
   if not hasSearchedForNotes
     then text ""
     else getSearchResultItems hasSearchedForNotes searchResult pickedItems
 
+getSearchResultItems : Bool -> List Note -> List PickItem -> Html a
 getSearchResultItems hasSearchedForNotes searchResult pickedItems =
   div [ class "row" ] 
     [ hr [] []
@@ -174,6 +180,7 @@ getSearchResultItems hasSearchedForNotes searchResult pickedItems =
       (if hasSearchedForNotes then getActualSearchResult searchResult pickedItems else getEmptySearchResult)
     ]
 
+getEmptySearchResult : List (Html a)
 getEmptySearchResult =
   [ div [] [ text "" ] ]
 
@@ -184,6 +191,7 @@ getActualSearchResult searchResult pickedItems =
   , p [] [ text ("Results found: " ++ (toString <| List.length searchResult)) ]
   ]
 
+getSearchResultItem : Note -> List PickItem -> List (Html a)
 getSearchResultItem searchResultItem pickedItems =
   let
     itemText = case find (\i -> i.id == searchResultItem.item) pickedItems of
